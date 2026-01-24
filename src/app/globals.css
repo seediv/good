@@ -3,24 +3,109 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* ===========================================
+     Responsive Spacing System
+     =========================================== */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-section: 32px;
+
+  /* ===========================================
+     Logo Typography System
+     =========================================== */
+  --logo-font-family: "Montserrat", system-ui, sans-serif;
+  --logo-font-size: 1.875rem;
+  --logo-font-weight: 800;
+  --logo-letter-spacing: -0.02em;
+  --logo-line-height: 1;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --spacing-xs: 8px;
+    --spacing-sm: 12px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --spacing-section: 48px;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-noto-sans-jp), "Noto Sans JP", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 見出し: Montserrat優先（英数字）、日本語はNoto Sans JPにフォールバック */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-montserrat), "Montserrat", var(--font-noto-sans-jp), "Noto Sans JP", system-ui, sans-serif;
+}
+
+/* コンテナ */
+.container-base {
+  width: 100%;
+  margin: 0 auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+@media (min-width: 640px) {
+  .container-base {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-base {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+}
+
+/* ロゴ */
+.site-logo {
+  font-family: var(--logo-font-family);
+  font-size: var(--logo-font-size);
+  font-weight: var(--logo-font-weight);
+  letter-spacing: var(--logo-letter-spacing);
+  line-height: var(--logo-line-height);
+  margin: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* font-montserrat utility class */
+.font-montserrat {
+  font-family: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
+}
+
+/* アニメーション */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
 }
