@@ -298,6 +298,18 @@ export default function CasesPage() {
                 Coming Soon
               </span>
             </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-60">
+              <span className="text-xs text-gray-400 uppercase tracking-wider">
+                音楽
+              </span>
+              <h3 className="font-bold text-gray-700 mt-1">ジャズ</h3>
+              <p className="text-gray-500 text-sm mt-2">
+                コード進行という制約の上の即興
+              </p>
+              <span className="text-xs text-gray-400 mt-3 inline-block">
+                Coming Soon
+              </span>
+            </div>
           </div>
         </div>
       </section>
