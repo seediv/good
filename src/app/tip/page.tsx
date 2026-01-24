@@ -282,6 +282,127 @@ export default function TipPage() {
                 手元に置きたい方へ。1ページ要約。
               </p>
             </a>
+            <div className="block bg-gray-100 rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">Summary</h3>
+              <p className="text-gray-500 text-sm">30秒で理解する概要</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="block bg-gray-100 rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">Patterns Catalog</h3>
+              <p className="text-gray-500 text-sm">適用パターン集</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="block bg-gray-100 rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">
+                Integration Guide
+              </h3>
+              <p className="text-gray-500 text-sm">プロジェクト統合ガイド</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tools */}
+      <section className="container-base py-16">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 font-montserrat">
+            ツール
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP Template</h3>
+              <p className="text-gray-500 text-sm">
+                Cursor / Claude Code 用テンプレート
+              </p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP GPT</h3>
+              <p className="text-gray-500 text-sm">TIPを適用するカスタムGPT</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP Linter</h3>
+              <p className="text-gray-500 text-sm">
+                AIへの指示をTIP観点でチェック
+              </p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP IDE Plugin</h3>
+              <p className="text-gray-500 text-sm">VSCode / Cursor 拡張機能</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Education & Community */}
+      <section className="container-base py-16 bg-gray-50">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 font-montserrat">
+            教育・コミュニティ
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP認定研修</h3>
+              <p className="text-gray-500 text-sm">
+                Practitioner / Master / Trainer
+              </p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP Meetup</h3>
+              <p className="text-gray-500 text-sm">月1回のオンライン勉強会</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP Conference</h3>
+              <p className="text-gray-500 text-sm">年1回のカンファレンス</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP協会</h3>
+              <p className="text-gray-500 text-sm">認定・研究・ブランド管理</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">論文・書籍</h3>
+              <p className="text-gray-500 text-sm">学術論文・一般書籍</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
+            <div className="bg-white rounded-xl p-6 border border-gray-200 opacity-60">
+              <h3 className="font-bold text-gray-700 mb-2">TIP診断</h3>
+              <p className="text-gray-500 text-sm">組織のTIP成熟度診断</p>
+              <span className="text-xs text-gray-400 mt-2 inline-block">
+                Coming Soon
+              </span>
+            </div>
           </div>
         </div>
       </section>
