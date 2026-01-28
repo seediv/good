@@ -10,6 +10,7 @@ const MENU_BUTTON_SIZE = 48;
 
 const NAVIGATION = [
   { name: "Cases", href: "/case" },
+  { name: "Principles", href: "/principle" },
   { name: "TIP Docs", href: "/tip" },
   { name: "GitHub", href: "https://github.com/seediv/good", external: true },
 ];
@@ -76,7 +77,7 @@ export const Header = memo(function Header() {
                 marginRight: "var(--spacing-lg)",
                 cursor: "pointer",
                 fontFamily:
-                  "var(--font-montserrat), Montserrat, system-ui, sans-serif",
+                  'var(--font-montserrat), Montserrat, var(--font-noto-sans-jp), "Noto Sans JP", sans-serif',
                 fontSize: "0.875rem",
                 fontWeight: 600,
                 transition: "background-color 0.2s ease",
@@ -153,25 +154,33 @@ export const Header = memo(function Header() {
                     {...linkProps}
                     style={{
                       textDecoration: "none",
-                      color: active ? "#171717" : "#737373",
+                      color: active ? "#171717" : "#525252",
+                      backgroundColor: "transparent",
                       fontFamily:
-                        "var(--font-montserrat), Montserrat, system-ui, sans-serif",
-                      fontSize: "1rem",
+                        'var(--font-montserrat), Montserrat, var(--font-noto-sans-jp), "Noto Sans JP", sans-serif',
+                      fontSize: "0.875rem",
                       fontWeight: active ? 600 : 400,
                       padding: "12px 16px",
                       borderBottom: active
-                        ? "3px solid #171717"
-                        : "3px solid transparent",
-                      transition: "color 0.2s ease, border-color 0.2s ease",
+                        ? "8px solid #171717"
+                        : "8px solid transparent",
+                      transition: "all 0.2s ease",
+                      display: "flex",
+                      alignItems: "center",
+                      height: HEADER_HEIGHT,
+                      marginBottom: -1,
+                      boxSizing: "border-box",
                     }}
                     onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => {
                       if (!active) {
                         e.currentTarget.style.color = "#171717";
+                        e.currentTarget.style.backgroundColor = "#f5f5f5";
                       }
                     }}
                     onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => {
                       if (!active) {
-                        e.currentTarget.style.color = "#737373";
+                        e.currentTarget.style.color = "#525252";
+                        e.currentTarget.style.backgroundColor = "transparent";
                       }
                     }}
                   >
@@ -225,7 +234,7 @@ export const Header = memo(function Header() {
                     textDecoration: "none",
                     color: active ? "#171717" : "#525252",
                     fontFamily:
-                      "var(--font-montserrat), Montserrat, system-ui, sans-serif",
+                      'var(--font-montserrat), Montserrat, var(--font-noto-sans-jp), "Noto Sans JP", sans-serif',
                     fontSize: "1.125rem",
                     fontWeight: active ? 600 : 400,
                     padding: "16px",

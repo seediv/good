@@ -8,15 +8,56 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+// C3: 構造に検証を埋め込む — GOOD自身がC3を満たす型定義
+type PrincipleId = "C1" | "C2" | "C3" | "C4";
+type Pair<A extends PrincipleId, B extends PrincipleId> = [A, B];
+
+// featuredとunderlyingが重複なく4原則を網羅することを型で強制
+type FourPrinciples<
+  F1 extends PrincipleId,
+  F2 extends PrincipleId,
+  U1 extends PrincipleId,
+  U2 extends PrincipleId,
+> = `${F1}${F2}${U1}${U2}` extends `${infer _}`
+  ? [F1, F2, U1, U2] extends [
+      PrincipleId,
+      PrincipleId,
+      PrincipleId,
+      PrincipleId,
+    ]
+    ? { featured: Pair<F1, F2>; underlying: Pair<U1, U2> }
+    : never
+  : never;
+
+// 許可される6パターンのみ（4C2 = 6通り）
+type ValidAssignment =
+  | FourPrinciples<"C1", "C2", "C3", "C4">
+  | FourPrinciples<"C1", "C3", "C2", "C4">
+  | FourPrinciples<"C1", "C4", "C2", "C3">
+  | FourPrinciples<"C2", "C3", "C1", "C4">
+  | FourPrinciples<"C2", "C4", "C1", "C3">
+  | FourPrinciples<"C3", "C4", "C1", "C2">;
+
+interface PrincipleDetail {
+  id: PrincipleId;
+  name: string;
+  evidence: string;
+}
+
+interface UnderlyingDetail {
+  id: PrincipleId;
+  name: string;
+  brief: string;
+}
+
 interface CaseData {
   title: string;
   titleEn: string;
   domain: string;
-  principles: {
-    id: string;
-    name: string;
-    evidence: string;
-  }[];
+  leadText: string;
+  principlesLead: string;
+  principles: [PrincipleDetail, PrincipleDetail];
+  underlying: [UnderlyingDetail, UnderlyingDetail];
   implementation: {
     label: string;
     items: string[];
@@ -33,11 +74,33 @@ interface CaseData {
   insight: string;
 }
 
+// ビルド時検証: 各事例が4原則を重複なく網羅しているか
+function validateCaseData(slug: string, data: CaseData): void {
+  const featured = data.principles.map((p) => p.id);
+  const underlying = data.underlying.map((p) => p.id);
+  const all = [...featured, ...underlying].sort();
+  if (all.length !== 4 || all.join(",") !== "C1,C2,C3,C4") {
+    throw new Error(
+      `[${slug}] 4原則が網羅されていない: featured=${featured}, underlying=${underlying}`,
+    );
+  }
+  const unique = new Set(all);
+  if (unique.size !== 4) {
+    throw new Error(
+      `[${slug}] 原則が重複している: featured=${featured}, underlying=${underlying}`,
+    );
+  }
+}
+
 const casesData: Record<string, CaseData> = {
   unix: {
     title: "Unix哲学",
     titleEn: "Unix Philosophy",
     domain: "ソフトウェア",
+    leadText:
+      "なぜ1970年代に生まれたOSの設計思想が、50年後のクラウド時代にも通用するのか。その答えは「何をしないか」を決めた勇気にある。",
+    principlesLead:
+      "Unixは「小さく作れ」「組み合わせろ」という単純な規律を守り続けた。その愚直さが、予測不可能な未来への適応力を生んだ。",
     principles: [
       {
         id: "C1",
@@ -50,6 +113,20 @@ const casesData: Record<string, CaseData> = {
         name: "結合規約の単純さ",
         evidence:
           "テキストストリームという単純なインターフェースが、全てのプログラムを繋ぐ共通語となった。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "パイプラインの各段でエラーが即座に検出される。exit codeによるエラー伝搬が構造に組み込まれている。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "grep | sort | uniq -c のように、設計者が想定しなかった組み合わせが日常的に生まれる。",
       },
     ],
     implementation: {
@@ -87,6 +164,10 @@ const casesData: Record<string, CaseData> = {
     title: "Git",
     titleEn: "Git Version Control",
     domain: "ソフトウェア",
+    leadText:
+      "Linusは「バージョン管理」を作ろうとしなかった。「データが壊れない仕組み」を作った。その発想の転換が、世界中の開発者を救った。",
+    principlesLead:
+      "Gitの設計には「信頼できない環境でも、データの整合性を保証する」という執念がある。その執念が、3つの単純なオブジェクトに結晶した。",
     principles: [
       {
         id: "C1",
@@ -99,6 +180,19 @@ const casesData: Record<string, CaseData> = {
         name: "構造に検証を埋め込む",
         evidence:
           "SHA-1ハッシュによる内容アドレス格納。内容が同じなら同一と判定され、整合性が自動的に保証される。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief: "blob、tree、commitの3オブジェクトだけで全ての履歴を表現する。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "ブランチが軽量なポインタだから、実験的な開発フローが自由に生まれる。",
       },
     ],
     implementation: {
@@ -136,6 +230,10 @@ const casesData: Record<string, CaseData> = {
     title: "桂離宮",
     titleEn: "Katsura Imperial Villa",
     domain: "建築",
+    leadText:
+      "ブルーノ・タウトは「泣きたくなるほど美しい」と言った。その美しさは、足し算ではなく引き算から生まれた。何もないことが、全てを語る。",
+    principlesLead:
+      "桂離宮には装飾がない。だからこそ、光の移ろい、季節の変化、訪れる人の心が、空間を完成させる。設計者は「余白」を設計した。",
     principles: [
       {
         id: "C1",
@@ -148,6 +246,20 @@ const casesData: Record<string, CaseData> = {
         name: "創発の余地を残す",
         evidence:
           "月の動き、季節の変化、訪問者の歩み方によって、無限の体験が創発する。設計者が想定しなかった美しさが生まれる。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "畳のモジュール寸法が空間構成の基本規約となり、全体の調和を支えている。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "自然光と影の変化が空間の質を常に映し出す。素材を隠さないから、劣化も美も見える。",
       },
     ],
     implementation: {
@@ -185,6 +297,10 @@ const casesData: Record<string, CaseData> = {
     title: "DNA複製機構",
     titleEn: "DNA Replication",
     domain: "生物学",
+    leadText:
+      "設計者はいない。40億年の試行錯誤が、驚くほど単純で堅牢な仕組みを生んだ。4文字のアルファベットが、全ての生命を記述している。",
+    principlesLead:
+      "DNAは「完璧な複製」を目指さなかった。「十分に正確で、たまに間違える」ことを選んだ。その不完全さが、進化を可能にした。",
     principles: [
       {
         id: "C2",
@@ -197,6 +313,20 @@ const casesData: Record<string, CaseData> = {
         name: "構造に検証を埋め込む",
         evidence:
           "二重らせん構造自体がバックアップ。片方が壊れても、相補鎖から復元可能。検証が構造に組み込まれている。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        brief:
+          "4種の塩基（A, T, G, C）だけという制約が、遺伝暗号の普遍性と単純さを生んだ。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "複製時の低確率な変異が進化の原動力。完璧でないことが、40億年の多様性を創発させた。",
       },
     ],
     implementation: {
@@ -234,6 +364,10 @@ const casesData: Record<string, CaseData> = {
     title: "圏論",
     titleEn: "Category Theory",
     domain: "数学",
+    leadText:
+      "対象の中身を見ない。関係性だけを見る。この潔い抽象化が、数学・物理学・プログラミングを繋ぐ共通言語を生んだ。",
+    principlesLead:
+      "圏論は「何であるか」を問わない。「何と繋がるか」だけを問う。この徹底した姿勢が、異分野に同じパターンを発見する目を与える。",
     principles: [
       {
         id: "C1",
@@ -246,6 +380,20 @@ const casesData: Record<string, CaseData> = {
         name: "結合規約の単純さ",
         evidence:
           "射の合成（composition）と恒等射（identity）という2つの規約だけで、あらゆる構造を記述できる。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "可換図式が定理の検証手段。図式が可換であることを示せば、証明が構造的に完了する。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "異なる数学分野に同じ構造（関手、自然変換）を発見することで、新しい数学が創発する。",
       },
     ],
     implementation: {
@@ -279,7 +427,1017 @@ const casesData: Record<string, CaseData> = {
     insight:
       "「数学の数学」と呼ばれる。具体的な対象を捨てることで、逆に全ての対象に適用可能な言語になった。プログラミング（関数型言語）、物理学（量子力学）、言語学など、異分野に同じパターンを発見する道具となっている。",
   },
+  "tcp-ip": {
+    title: "TCP/IP",
+    titleEn: "TCP/IP Protocol Suite",
+    domain: "ソフトウェア",
+    leadText:
+      "インターネットは「賢いネットワーク」を作らなかった。「馬鹿なネットワーク」を作った。知性を端点に置いたから、誰も予想しなかった革新が生まれた。",
+    principlesLead:
+      "TCP/IPの成功は、各層が「下の層を知らない」という無知にある。この意図的な無知が、Ethernet、Wi-Fi、衛星通信を同じ言葉で繋いだ。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "4層の階層化と「各層は上下の層のみと対話する」という制約が、爆発的なイノベーションを可能にした。",
+      },
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        evidence:
+          "IPパケットという単一の抽象化が、異なるネットワーク技術（Ethernet、Wi-Fi、衛星）を統一する共通語になった。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "TCPのチェックサムとシーケンス番号が、データの完全性と順序を構造的に保証する。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "End-to-End原則により、Web、動画配信、IoTなど予測不可能な上位サービスが次々に生まれた。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "アプリケーション層（HTTP, SMTP, DNS）",
+        "トランスポート層（TCP, UDP）",
+        "インターネット層（IP）",
+        "ネットワークアクセス層（Ethernet, Wi-Fi）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "階層化（各層は隣接層のみと対話）",
+        "抽象化（上位層は下位層の実装を知らない）",
+        "End-to-End原則（機能は端点に置く）",
+        "パケット交換（コネクションレス）",
+      ],
+    },
+    intent: "異なるネットワーク技術を、単一のプロトコルで繋ぎたい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "階層の分離: 各層は独立して進化できる",
+        "IPの抽象化: 物理層の違いを隠蔽",
+        "End-to-End: ネットワークは単純に、知性は端点に",
+        "相互運用性: 共通語があれば誰でも参加できる",
+      ],
+    },
+    insight:
+      "IPという単一の抽象化が、予測不可能な革新（Web、動画、IoT）を許容した。設計の「単純さ」が成功の鍵であり、制約（階層化）が自由（イノベーション）を生んだ典型例。",
+  },
+  ise: {
+    title: "伊勢神宮",
+    titleEn: "Ise Grand Shrine",
+    domain: "建築",
+    leadText:
+      "建物は20年で消える。しかし「作る技術」は1300年続いている。伊勢神宮は建築ではなく、技術伝承のシステムを設計した。",
+    principlesLead:
+      "式年遷宮は「壊すことで残す」という逆説を実現している。20年という周期は、職人が一生に2〜3回参加できる絶妙な間隔だ。",
+    principles: [
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        evidence:
+          "20年ごとの式年遷宮が、技術伝承の検証機構として機能する。「作れなくなった」時点で問題が顕在化する。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "1300年にわたり、時代ごとの職人が微細な改良を加え続けている。同一でありながら進化する。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        brief:
+          "20年という周期の制約が、「今この世代で伝えなければ失われる」という切迫感を生み、技術伝承を強制する。",
+      },
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "師弟の口伝と実践という単純な伝承規約が、文書なしに1300年の技術を繋いでいる。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "20年ごとの完全な建て替え（式年遷宮）",
+        "隣接地への交互移転",
+        "同一の設計図（心御柱を中心とした配置）",
+        "檜の素木造り（無塗装）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "更新による永続（壊すことで残す）",
+        "技術伝承の強制（作らなければ失われる）",
+        "同一性と変化の共存",
+        "素材の正直さ（劣化を隠さない）",
+      ],
+    },
+    intent: "建物ではなく「作る技術」を永続させたい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "20年周期: 職人が一生に2-3回参加できる → 技術が途切れない",
+        "完全な建て替え: 補修では技術が伝わらない → 全工程を経験",
+        "交互移転: 常に「次の場所」がある → 中断なく継続",
+        "素木: 劣化が見える → 更新の必要性が明確",
+      ],
+    },
+    insight:
+      "「永続する建築」ではなく「永続する技術」を設計した。建物は20年で消えるが、作る能力は1300年続いている。検証（技術が維持されているか）が構造（式年遷宮）に埋め込まれており、失敗したら「作れない」という形で即座に顕在化する。",
+  },
+  haiku: {
+    title: "俳句",
+    titleEn: "Haiku Poetry",
+    domain: "言語",
+    leadText:
+      "17音で宇宙を描く。この不可能に挑む形式が、世界で最も短い詩を生んだ。言わないことで、語る。",
+    principlesLead:
+      "俳句の力は「削ること」にある。5-7-5という容赦ない制約が、本当に大事なことだけを残す。そして余白が、読者の想像力を招く。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "5-7-5という17音の厳格な制約が、無限の表現可能性を開いた。制約がなければ、何を削ぎ落とすべきかわからない。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "「言わないこと」「余白」が本質。読者の想像力が詩を完成させる。作者が全てを語らない。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "季語という共有知の規約が、最小限の言葉で読者と情景を共有する仕組みとなっている。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "切れ字（「や」「かな」「けり」）が句の構造を規定し、余韻が成立しているかを形式が検証する。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "5-7-5の17音",
+        "季語（季節を表す言葉）",
+        "切れ（句切れ、余韻）",
+        "一物仕立て/取り合わせ",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "極限の圧縮（17音に凝縮）",
+        "余白の設計（言わないことで語る）",
+        "瞬間の切り取り（時間の凍結）",
+        "読者との共創（解釈の余地）",
+      ],
+    },
+    intent: "一瞬の感動を、永続する形で共有したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "17音の制約: 本当に大事なことだけが残る",
+        "季語: 共有知識を呼び起こす → 最小限の言葉で最大の情景",
+        "切れ: 読者が想像で埋める余白を作る",
+        "取り合わせ: 異質なものの並置が新しい意味を創発",
+      ],
+    },
+    insight:
+      "「古池や蛙飛び込む水の音」— 17音で宇宙を描く。制約が極限まで厳しいからこそ、一語一語が研ぎ澄まされる。そして、言い切らないからこそ、読者の心の中で詩が完成し続ける。C1（制約）とC4（創発）の究極の結合。",
+  },
+  tps: {
+    title: "トヨタ生産方式",
+    titleEn: "Toyota Production System",
+    domain: "組織",
+    leadText:
+      "「在庫は悪」という常識外れの制約が、世界の製造業を変えた。問題を隠す余裕を奪うことで、問題を見える化した。",
+    principlesLead:
+      "トヨタ生産方式の本質は「問題を隠せない仕組み」にある。ジャストインタイムと自働化は、異常を即座に顕在化させる構造だ。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "「在庫を持たない」というジャストインタイムの制約が、問題を即座に顕在化させ、継続的改善を強制する。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        evidence:
+          "自働化（Jidoka）により、異常が発生したら機械が自動停止する。検査工程ではなく、製造工程自体が品質を保証する。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "かんばんという紙1枚の規約が、前工程と後工程を繋ぐ唯一のインターフェースとなっている。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "現場のカイゼン提案が日常的に生まれる。管理者が設計しない改善が、現場から創発し続ける。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "ジャストインタイム（必要なものを必要な時に）",
+        "自働化（異常時に自動停止）",
+        "アンドン（問題の可視化）",
+        "かんばん（情報の流れの制御）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "ムダの徹底排除（7つのムダ）",
+        "異常の即時検知（問題を隠さない）",
+        "継続的改善（カイゼン）",
+        "現地現物（現場で考える）",
+      ],
+    },
+    intent: "品質・コスト・納期を、同時に最適化したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "JIT: 在庫がないから問題が隠れない → 改善が必須になる",
+        "自働化: 機械が異常を検知 → 人は判断に集中",
+        "アンドン: 問題が全員に見える → 助け合いが生まれる",
+        "かんばん: 後工程が引く → 作りすぎない",
+      ],
+    },
+    insight:
+      "「在庫は悪」という一見不合理な制約が、全ての問題を顕在化させる。問題が見えるから、改善できる。自働化により、品質検査という「後から検証」ではなく、製造工程自体に検証が埋め込まれた。C1とC3の強力な組み合わせ。",
+  },
+  lego: {
+    title: "LEGO",
+    titleEn: "LEGO Building System",
+    domain: "デザイン",
+    leadText:
+      "1個のブロックは何も意味しない。しかし組み合わせると、宇宙船にも城にも恐竜にもなる。「何でもできる」は「何も決めない」から生まれた。",
+    principlesLead:
+      "LEGOの天才は結合規約にある。スタッドとチューブという単一のルールが、1958年以来の全てのブロックを互換にしている。",
+    principles: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        evidence:
+          "スタッドとチューブという単一の結合規約が、1958年以来のすべてのブロックの互換性を保証している。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "設計者が想定しなかった創造物が無限に生まれる。ブロック自体は「何も意味しない」からこそ、何にでもなれる。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        brief:
+          "8mmグリッドという寸法制約が、どのブロックも確実に嵌合する信頼性を保証している。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "物理的な嵌合が検証そのもの。繋がらなければ即座に分かる。検査工程は不要。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "スタッドとチューブの嵌合システム",
+        "8mmグリッドの統一寸法",
+        "ABS樹脂（高精度成形）",
+        "互換性の維持（1958年以来）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "単一の結合規約（どこでも繋がる）",
+        "寸法の厳密性（遊びがない）",
+        "意味の不在（ブロック自体は無意味）",
+        "組み合わせの自由（制限なし）",
+      ],
+    },
+    intent: "誰もが、何でも、繰り返し作れるようにしたい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "単一規約: 覚えることが少ない → 子供でも使える",
+        "高精度: 繋がらないイライラがない → 創造に集中",
+        "意味の不在: 用途が決まっていない → 何にでもなれる",
+        "互換性維持: 親子三代で遊べる → 資産が蓄積",
+      ],
+    },
+    insight:
+      "LEGOブロック1個は何の意味も持たない。しかし、組み合わせると宇宙船にも城にも恐竜にもなる。結合規約（C2）の単純さが、創発（C4）の無限の可能性を開いた。「何でもできる」は「何も決まっていない」から生まれる。",
+  },
+  container: {
+    title: "コンテナ輸送",
+    titleEn: "Intermodal Container",
+    domain: "物流",
+    leadText:
+      "1956年、マルコム・マクリーンは「船を速くする」のではなく「荷物を触らない」ことを選んだ。1つの箱の規格統一が、世界貿易のコストを96%下げた。",
+    principlesLead:
+      "コンテナ以前、港の荷役は1トンあたり5.86ドルかかった。コンテナ導入後、0.16ドルに下がった。技術革新ではない。「箱の大きさを決めた」だけだ。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "20フィートまたは40フィートという箱の寸法制約が、船・トラック・鉄道・クレーンの全てを統一し、物流全体を解放した。",
+      },
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        evidence:
+          "コーナーキャスティング（角の金具）という単一の結合規約が、世界中のどの港でも積み替え可能にした。ISO 668として国際標準化。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "コンテナの密封性が中身の品質を物理的に保証する。開封しなければ破損・盗難がないことが構造で検証される。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "規格統一が想定外のサプライチェーン革新を生んだ。グローバリゼーションの物理的基盤となった。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "標準寸法（20ft / 40ft）",
+        "コーナーキャスティング（8つの角金具）",
+        "ツイストロック（固定機構）",
+        "ガントリークレーン（積み下ろし）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "中身を触らない（sealed unit）",
+        "寸法の統一（intermodal compatibility）",
+        "結合点の標準化（corner castings）",
+        "モード間の互換性（船→トラック→鉄道）",
+      ],
+    },
+    intent: "荷物を、安く・速く・壊さずに世界中へ届けたい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "寸法の制約: 箱を統一したから、全ての乗り物が対応できた",
+        "結合規約: 角金具が共通語となり、世界中の港が互換になった",
+        "密閉: 中身を知らなくても運べる → 盗難と破損が激減",
+        "積み替え不要: 人手が減る → コスト96%削減",
+      ],
+    },
+    insight:
+      "マクリーンは海運業者だったが、船の専門家ではなかった。だから「船を改良する」ではなく「荷物の扱い方を変える」と発想できた。1つの箱の規格が、船、港、トラック、鉄道、保険、関税の全てを変えた。制約（箱の寸法）と規約（角金具）の組み合わせが、グローバリゼーションの物理的基盤となった。",
+  },
+  immune: {
+    title: "免疫システム",
+    titleEn: "Immune System",
+    domain: "生物学",
+    leadText:
+      "体内に侵入する病原体は無数にある。しかし免疫システムは、未知の敵にも対応できる。「全てを記憶する」のではなく「自己でないものを排除する」という転換が鍵だ。",
+    principlesLead:
+      "免疫は「敵を知る」のではなく「自分を知る」ことで機能する。自己と非自己の識別という単純な原理が、未知の脅威への対応力を生んでいる。",
+    principles: [
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        evidence:
+          "胸腺でのT細胞の選別（正の選択と負の選択）。自己を攻撃するT細胞は成熟前に排除される。検証が発達過程に埋め込まれている。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "V(D)J遺伝子再構成により、10億種類以上の抗体を生成可能。遺伝子にないパターンを、遺伝子の組み合わせから創発させる。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        brief:
+          "「自己を攻撃しない」という制約が、未知の脅威への対応力を構造的に保障している。",
+      },
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "抗原と抗体の鍵と鍵穴という単純な結合規約が、10億種類以上の認識を可能にしている。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "自然免疫（マクロファージ、NK細胞）",
+        "適応免疫（T細胞、B細胞）",
+        "抗体の多様性（V(D)J遺伝子再構成）",
+        "免疫記憶（メモリー細胞）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "自己と非自己の識別",
+        "多層防御（自然免疫→適応免疫）",
+        "組み合わせによる多様性生成",
+        "経験の記憶と次回への活用",
+      ],
+    },
+    intent: "未知の脅威に、事前準備なしで対応したい（進化が見つけた解）",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "自己認識: 敵を列挙するのではなく、自分を知ることで非自己を排除",
+        "多層防御: 自然免疫が時間を稼ぎ、適応免疫が精密に対応",
+        "組み合わせ爆発: 限られた遺伝子から10億以上の抗体パターンを生成",
+        "記憶: 一度戦った相手を覚え、次回はより速く対応（ワクチンの原理）",
+      ],
+    },
+    insight:
+      "免疫システムは「全ての病原体を知っている」のではない。「自分が何であるか」を知っており、それ以外を排除する。この否定による定義が、未知への対応力を生む。検証（胸腺での選別）が構造に埋め込まれ、創発（V(D)J再構成）が多様性を保証する。C3とC4の生物学的実装。",
+  },
+  "periodic-table": {
+    title: "周期表",
+    titleEn: "Periodic Table",
+    domain: "化学",
+    leadText:
+      "メンデレーエフは1869年、元素を並べ替えていて「空欄」を見つけた。その空欄が、まだ発見されていない元素の存在と性質を予測した。パターンが未知を照らした。",
+    principlesLead:
+      "周期表の力は「並べた」ことにある。原子量順に並べるという単純な規約が、元素間の関係を可視化し、未発見の元素すら予測可能にした。",
+    principles: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        evidence:
+          "原子番号順に並べ、性質の類似する元素を縦に配置するという単純な規約が、118元素の関係性を一覧可能にした。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        evidence:
+          "空欄が検証機構として機能した。メンデレーエフはエカアルミニウム、エカシリコンなど未発見元素の性質を予測し、後の発見で正確さが確認された。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        brief:
+          "原子番号順という1つの制約が、118元素の多様な性質に秩序を与えた。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "表の空欄が未発見元素の存在を予測させ、新しい発見への道筋を創発させた。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "原子番号順の配列",
+        "族（縦列）による性質のグループ化",
+        "周期（横列）による電子殻の対応",
+        "空欄（未発見元素の予測）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "単一の序列（原子番号）で全元素を並べる",
+        "周期性の表現（性質の繰り返し）",
+        "空欄による予測（存在すべきものの可視化）",
+        "関係性の一覧化（縦と横の二次元配置）",
+      ],
+    },
+    intent: "元素の多様性に、秩序を見出したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "単一序列: 原子番号という1つの数値で全元素を位置づけた",
+        "二次元配置: 縦（族）と横（周期）で性質の類似と変化を同時に表現",
+        "空欄: 「ここに何かあるはず」が予測を可能にした",
+        "周期性: 繰り返しパターンが法則の存在を示した",
+      ],
+    },
+    insight:
+      "メンデレーエフの周期表は、既知の元素を整理しただけではない。「空欄」を残すことで、未発見の元素の存在と性質を予測した。構造が検証機構になった典型例。正しい配置規約（C2）が、自動的に検証機構（C3）を内包した。整理の仕方そのものが、発見の道具となった。",
+  },
+  igo: {
+    title: "囲碁",
+    titleEn: "Go (Board Game)",
+    domain: "ゲーム",
+    leadText:
+      "ルールは5分で覚えられる。しかし、その先に広がる局面の数は宇宙の原子数より多い。単純さの極致が、複雑さの極致を生む。",
+    principlesLead:
+      "囲碁のルールは「置く」「囲む」「取る」だけ。チェスの駒のような特殊能力はない。全ての石が平等だからこそ、無限の戦略が生まれる。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "19×19の盤面、白と黒の石、交互に置く、囲んだら取る。これだけのルールから、10の170乗を超える局面が生まれる。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "石自体に固有の能力はない。配置と関係性から「厚み」「模様」「生き死に」が創発する。部分の和を超えた全体が生まれる。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "石の生死は「呼吸点があるかないか」の一つのルールで決まる。例外がない。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "地（領域）の計算が盤面の状態から一意に決まる。勝敗の判定が構造に埋め込まれている。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "19×19の格子（361の交点）",
+        "白と黒の石（区別なし）",
+        "交互着手",
+        "囲んだ石を取る（呼吸点ゼロで除去）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "全ての石は平等（特殊能力なし）",
+        "価値は関係性から生まれる（配置が意味を決める）",
+        "局所と全局の相互作用",
+        "コウ（同一局面の反復禁止）による無限ループ防止",
+      ],
+    },
+    intent: "陣地を多く囲み、相手より多くの領域を確保したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "石の平等: 特殊ルールがないから、戦略の自由度が最大化",
+        "格子の制約: 有限の盤面が無限の可能性を生む（361点に10^170局面）",
+        "関係性の創発: 石の配置から「厚み」「模様」が自然に生まれる",
+        "コウ: 最小限の追加ルールで無限ループという構造的問題を解決",
+      ],
+    },
+    insight:
+      "囲碁は人類が作った最も単純なルールから最も複雑な創発を生むゲームの一つ。AlphaGoが人間を超えた時も、その着手は人間が「美しい」と感じるものだった。単純な制約（C1）が創発の余地（C4）を最大化する究極の例。4000年以上遊ばれ続けていること自体が、設計の正しさを証明している。",
+  },
+  wikipedia: {
+    title: "Wikipedia",
+    titleEn: "Wikipedia",
+    domain: "知識共有",
+    leadText:
+      "誰でも編集できる百科事典。荒らされて崩壊するはずだった。しかし崩壊しなかった。なぜか。「完璧な記事」ではなく「修正可能な記事」を目指したからだ。",
+    principlesLead:
+      "Wikipediaの力は「正しさの保証」ではなく「修正の容易さ」にある。間違いを不可能にするのではなく、間違いの修正を極限まで簡単にした。",
+    principles: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        evidence:
+          "Wikiマークアップという単純な記法と「誰でも編集できる」という規約が、数百万人の貢献者を結びつけた。専門知識なしに参加できる。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "個々の編集は小さな修正に過ぎない。しかし集積すると、6000万以上の記事を持つ人類最大の百科事典が創発した。誰も全体を設計していない。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        brief:
+          "「中立的な観点」という編集方針の制約が、特定の立場に偏らない百科事典を可能にした。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "「出典を明記せよ」という方針が検証機構。出典のない記述は誰でも疑問を呈せる。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "誰でも編集可能（アカウント不要）",
+        "全履歴の保存（差分表示）",
+        "ウォッチリスト（変更監視）",
+        "議論ページ（合意形成）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "参加障壁の最小化（誰でも、すぐに）",
+        "可逆性の保証（全ての変更を元に戻せる）",
+        "透明性（全履歴が公開）",
+        "合意による品質管理（議論と検証）",
+      ],
+    },
+    intent: "人類の知識を、誰もが自由に利用できる形で集約したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "参加障壁の低さ: 専門家でなくても貢献できる → 貢献者が爆発的に増加",
+        "可逆性: いつでも元に戻せる → 「編集してみよう」の心理的安全性",
+        "履歴の透明性: 誰が何を変えたか全て見える → 荒らしの抑止",
+        "議論ページ: 対立を記事の外で解決 → 記事の品質が議論から創発",
+      ],
+    },
+    insight:
+      "Wikipediaは「正しい記事を書く仕組み」ではなく「間違いを修正しやすい仕組み」として設計された。完璧を目指さず、修正可能性を最大化した。その結果、個々の編集者が意図しなかった規模の知識体系が創発した。誰も全体を設計していないのに、ブリタニカを超えた。C2（参加規約の単純さ）がC4（集合知の創発）を可能にした。",
+  },
+  constitution: {
+    title: "憲法",
+    titleEn: "Constitution",
+    domain: "法律",
+    leadText:
+      "憲法は国民を縛る法律ではない。国家権力を縛る法律だ。この逆転が、自由の基盤を作った。制約される側が逆転する、最も大きなスケールの「制約による解放」。",
+    principlesLead:
+      "憲法の本質は「やってはいけないことのリスト」だ。権力に対して禁止事項を課すことで、国民の自由が構造的に保障される。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "権力への制約（検閲の禁止、不当逮捕の禁止など）が、国民の表現の自由・身体の自由を構造的に保障する。制約される対象が「権力」であることが本質。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        evidence:
+          "違憲審査制度（司法による法律の合憲性チェック）が検証機構として構造に埋め込まれている。法律が憲法に違反していれば無効になる。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "三権分立という単純な分割規約が、権力間の相互監視を構造化している。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "判例法の蓄積により、制定時に想定されなかった状況への適用が創発的に生まれ続ける。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "最高法規性（他の法律に優越）",
+        "権力分立（立法・行政・司法の分離）",
+        "基本的人権の保障",
+        "違憲審査制度",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "権力への制約（国民ではなく国家を縛る）",
+        "硬性憲法（改正を容易にしない）",
+        "権力の分散（一箇所に集中させない）",
+        "司法による検証（違憲審査）",
+      ],
+    },
+    intent: "権力の暴走を防ぎ、個人の自由を保障したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "最高法規性: 通常の法律では憲法を覆せない → 権力の恣意的な変更を阻止",
+        "権力分立: 相互監視により暴走を構造的に困難にする",
+        "硬性憲法: 改正のハードルが高い → 一時的な多数派の感情で変えられない",
+        "違憲審査: 法律の合憲性を常時検証 → 検証が統治構造に埋め込まれている",
+      ],
+    },
+    insight:
+      "憲法は「国民を守るルール」ではなく「権力を縛るルール」だ。制約の対象が逆転している点が本質的。そして違憲審査という検証機構が構造に埋め込まれているため、一つの法律が国民の権利を侵害しても、司法が無効にできる。C1（権力への制約が国民を解放）とC3（違憲審査という構造的検証）の社会的実装。",
+  },
+  jazz: {
+    title: "ジャズ",
+    titleEn: "Jazz Improvisation",
+    domain: "音楽",
+    leadText:
+      "楽譜通りに弾かない。しかしデタラメでもない。コード進行という「見えない骨格」の上で、演奏者は毎回違う音楽を生み出す。制約と自由の最も美しい均衡。",
+    principlesLead:
+      "ジャズの即興は「何でもあり」ではない。コード進行、スケール、リズムという厳格な制約の中でこそ、予測不可能な美が生まれる。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "12小節のブルース進行、II-V-Iのコード進行、4/4拍子。これらの制約が「何を弾くか」の選択肢を絞り、即興の質を高める。制約がなければ即興は散漫になる。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "同じスタンダード曲でも、演奏するたびに異なる音楽が生まれる。演奏者同士の相互作用から、誰も予測しなかったフレーズやグルーヴが創発する。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "コード進行という共有規約が、初対面の演奏者同士でもセッションを可能にする。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "アンサンブルでの相互傾聴が検証機構。不協和が即座に聞こえ、演奏者同士がリアルタイムで修正する。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "コード進行（和声の骨格）",
+        "スケール（使える音の制約）",
+        "リズムセクション（ベース、ドラム、ピアノの基盤）",
+        "ソロの交代（各奏者が順番に即興）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "骨格の共有（コード進行を全員が知っている）",
+        "骨格の上の自由（メロディは即興）",
+        "相互応答（他の演奏者の音に反応する）",
+        "一回性（同じ演奏は二度とない）",
+      ],
+    },
+    intent: "音楽を、演奏の瞬間に創造したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "コード進行: 和声の骨格を共有するから、初対面でも一緒に演奏できる",
+        "スケール: 使える音が限られるから、選択が研ぎ澄まされる",
+        "リズムセクション: 基盤が安定しているから、ソリストは冒険できる",
+        "ソロ交代: 各自の個性が順番に現れ、相互作用が累積する",
+      ],
+    },
+    insight:
+      "Miles Davisは「間違った音はない。間違った音の次に弾く音が間違いを決める」と言った。ジャズの即興は、制約（コード進行）があるからこそ成立する。制約がなければ、それは即興ではなくノイズだ。そして演奏者同士の相互作用から、誰も予想しなかった音楽が創発する。C1（制約）とC4（創発）が、音として結実する。",
+  },
+  "coral-reef": {
+    title: "サンゴ礁",
+    titleEn: "Coral Reef Ecosystem",
+    domain: "生態学",
+    leadText:
+      "海の面積の0.1%に過ぎないサンゴ礁に、海洋生物種の25%が暮らしている。この不均衡はなぜ生まれたか。答えは「共生の規約」にある。",
+    principlesLead:
+      "サンゴは動物だが、体内に藻類（褐虫藻）を住まわせている。サンゴが住処を提供し、藻類が光合成で栄養を返す。この単純な交換規約が、地球最大の生態系を生んだ。",
+    principles: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        evidence:
+          "サンゴと褐虫藻の共生は「住処と栄養の交換」という単純な規約。この規約が熱帯の貧栄養海域に栄養循環を生み出し、多様な生態系の基盤となった。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "サンゴが作る三次元構造（裂け目、穴、段差）が無数のニッチを提供し、魚類、甲殻類、軟体動物など多様な種の共存を可能にした。設計者はいない。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        brief:
+          "水温26-28℃という狭い生存条件の制約が、熱帯の特定海域に生態系を集中させ、密度が多様性を生んだ。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "共生関係の崩壊（白化現象）が環境悪化の検証機構として機能する。構造が異常を可視化する。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "サンゴと褐虫藻の細胞内共生",
+        "石灰質の骨格形成（三次元構造）",
+        "栄養循環（貧栄養海域での効率的リサイクル）",
+        "多様なニッチ（隙間、穴、表面）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "相互利益の交換（共生の基本契約）",
+        "構造の蓄積（石灰質骨格の積み重ね）",
+        "多様性の自己生成（構造が新たなニッチを作る）",
+        "栄養の閉じた循環（外部からの投入最小）",
+      ],
+    },
+    intent: "貧栄養環境で、多様な生命を維持したい（進化が見つけた解）",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "共生規約: 住処と栄養の交換で双方が利益を得る → 貧栄養でも繁栄",
+        "三次元構造: サンゴの骨格が無数の隙間を作る → 多様な種が棲み分け",
+        "栄養循環: 排泄物が別の種の栄養になる → 閉じた系で効率最大化",
+        "構造の蓄積: 死んだサンゴも基盤になる → 時間が多様性を増幅",
+      ],
+    },
+    insight:
+      "サンゴ礁は「海の熱帯雨林」と呼ばれる。海洋面積の0.1%に25%の種が集中するこの不均衡は、「共生の規約」（C2）が「生態系の創発」（C4）を生んだ結果だ。サンゴ自身は単純な動物に過ぎないが、その構造が無数のニッチを作り、予測不可能な多様性が創発した。誰も全体を設計していない。",
+  },
+  relativity: {
+    title: "相対性理論",
+    titleEn: "Theory of Relativity",
+    domain: "物理学",
+    leadText:
+      "アインシュタインは宇宙の法則を探しに行ったのではない。「光の速さは誰が測っても同じ」という1つの制約を受け入れただけだ。そこから時間と空間の歪みが導かれた。",
+    principlesLead:
+      "特殊相対性理論の出発点はたった2つの公理だ。「物理法則はどの慣性系でも同じ」「光速は観測者によらず一定」。この制約から、E=mc²が導かれる。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "「光速不変」という直観に反する制約を受け入れることで、ニュートン力学では説明できなかった現象（時間の遅れ、質量とエネルギーの等価性）が統一的に説明可能になった。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        evidence:
+          "理論自身が具体的な予測を内包する。水星の近日点移動、光の重力による曲がり、重力波の存在。これらは理論の構造から自動的に導かれ、後に全て観測で確認された。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "テンソル方程式という統一的な記法が、異なる座標系間の物理法則を単一の規約で繋ぐ。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        brief:
+          "場の方程式からブラックホール、膨張宇宙、重力レンズなど、アインシュタイン自身が予想しなかった帰結が創発した。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "光速不変の原理（c = 299,792,458 m/s）",
+        "ローレンツ変換（時空の座標変換）",
+        "質量エネルギー等価（E=mc²）",
+        "時空の曲率（一般相対性理論）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "制約の受容（光速は不変という前提）",
+        "対称性の要求（物理法則はどの系でも同じ）",
+        "幾何学化（重力を時空の曲がりとして記述）",
+        "予測の内包（理論から検証可能な予言が出る）",
+      ],
+    },
+    intent: "自然法則を、観測者によらない形で記述したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "光速不変: 直観に反する制約を受け入れた → 時空の統一的記述が可能に",
+        "対称性: 「どの観測者でも同じ法則」→ 特殊な座標系が不要に",
+        "幾何学化: 重力を力ではなく時空の性質として記述 → 統一的理解",
+        "予測の自動生成: 理論の構造から検証可能な予言が導かれる → 反証可能性",
+      ],
+    },
+    insight:
+      "アインシュタインは「光速は不変」という1つの制約から、時間の遅れ、空間の収縮、E=mc²を全て導いた。制約を受け入れることで、ニュートンが200年かけて築いた体系を包含し超えた。そして理論は自ら検証手段を内包する。水星の軌道、日食時の光の曲がり、重力波。全て理論の構造から導かれた予測であり、後に確認された。C1（制約による統一）とC3（予測という構造的検証）の物理学的実装。",
+  },
+  chado: {
+    title: "茶道",
+    titleEn: "Tea Ceremony (Chadō)",
+    domain: "文化",
+    leadText:
+      "茶碗を回す方向、歩数、お辞儀の角度まで決められている。しかし利休は言った。「茶の湯とは、ただ湯を沸かし茶をたてて飲むばかりなる事と知るべし」。型の果てに、自由がある。",
+    principlesLead:
+      "茶道の「型」は制約ではなく、注意を向ける場所を設計している。所作が決まっているからこそ、その場の空気、季節の光、客との間合いに意識を集中できる。",
+    principles: [
+      {
+        id: "C1",
+        name: "制約による解放",
+        evidence:
+          "点前（てまえ）の手順は厳密に定められている。しかしその制約が「何をするか」の判断から解放し、「いま、ここ」への集中を可能にする。",
+      },
+      {
+        id: "C4",
+        name: "創発の余地を残す",
+        evidence:
+          "一期一会。同じ茶室、同じ道具、同じ手順でも、その日の天気、客の表情、季節の移ろいにより、二度と同じ茶会は生まれない。型の中から一回性が創発する。",
+      },
+    ],
+    underlying: [
+      {
+        id: "C2",
+        name: "結合規約の単純さ",
+        brief:
+          "点前の手順という共有規約が、流派を超えて亭主と客の間合いを成立させている。",
+      },
+      {
+        id: "C3",
+        name: "構造に検証を埋め込む",
+        brief:
+          "亭主の所作と客の応答が相互検証として機能する。礼の作法が「場が成立しているか」を常に映し出す。",
+      },
+    ],
+    implementation: {
+      label: "実装（現物）",
+      items: [
+        "点前（手順の型）",
+        "茶室（にじり口、四畳半の制約）",
+        "季節の道具（掛物、花、茶碗の選択）",
+        "一期一会（この瞬間は二度とない）",
+      ],
+    },
+    intermediateRepresentation: {
+      label: "中間表現（原則）",
+      items: [
+        "型による解放（手順が決まっているから意識が自由になる）",
+        "引き算の美（余計なものを排する）",
+        "もてなしの非対称性（主人は客のために尽くす）",
+        "一回性の尊重（反復不可能であることの価値）",
+      ],
+    },
+    intent: "日常の行為（茶を飲む）を、精神的体験に昇華したい",
+    connection: {
+      label: "意図→実装を繋いだもの",
+      items: [
+        "型: 判断の負荷を消すことで、感覚が研ぎ澄まされる",
+        "茶室: 小さな空間が外界を遮断し、内側への集中を促す",
+        "季節の道具: 自然の移ろいを茶会に取り込む → 毎回が唯一になる",
+        "にじり口: 身分の高い者も頭を下げて入る → 茶室の中は平等",
+      ],
+    },
+    insight:
+      "千利休は「守破離」を説いた。まず型を守り（守）、型を理解した上で破り（破）、やがて型を超える（離）。型は到達点ではなく出発点だ。茶道は500年以上続いているが、毎回の茶会は一回きり。C1（型という制約）がC4（一期一会の創発）を可能にする。最も厳格な型が、最も自由な瞬間を生む。",
+  },
 };
+
+// モジュール読み込み時に全事例を検証（ビルド時にエラーを検出）
+for (const [slug, data] of Object.entries(casesData)) {
+  validateCaseData(slug, data);
+}
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -297,33 +1455,40 @@ export default async function CaseDetailPage({ params }: PageProps) {
     <main className="min-h-screen bg-white">
       {/* Header */}
       <section className="container-base py-12 md:py-16 border-b border-gray-200">
-        <div className="max-w-4xl mx-auto">
-          <Link
-            href="/case"
-            className="text-gray-500 hover:text-gray-700 mb-4 inline-block text-sm"
-          >
-            ← Cases
-          </Link>
+        <div>
           <div className="flex items-start justify-between">
             <div>
               <span className="text-sm text-gray-500 uppercase tracking-wider">
                 {caseData.domain}
               </span>
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 font-montserrat">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 font-montserrat">
                 {caseData.title}
               </h1>
               <p className="text-xl text-gray-500 font-montserrat">
                 {caseData.titleEn}
               </p>
+              <p className="mt-6 text-lg text-gray-700 leading-relaxed max-w-2xl">
+                {caseData.leadText}
+              </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
               {caseData.principles.map((p) => (
-                <span
+                <Link
                   key={p.id}
-                  className="px-3 py-1 bg-gray-900 text-white text-sm font-bold rounded"
+                  href={`/principle/${p.id.toLowerCase()}`}
+                  className="px-3 py-1 bg-gray-900 text-white text-sm font-bold rounded hover:bg-gray-700 transition-colors"
                 >
                   {p.id}
-                </span>
+                </Link>
+              ))}
+              {caseData.underlying.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/principle/${p.id.toLowerCase()}`}
+                  className="px-3 py-1 border border-gray-300 text-gray-400 text-sm font-bold rounded hover:border-gray-500 hover:text-gray-600 transition-colors"
+                >
+                  {p.id}
+                </Link>
               ))}
             </div>
           </div>
@@ -332,15 +1497,19 @@ export default async function CaseDetailPage({ params }: PageProps) {
 
       {/* Principles Found */}
       <section className="container-base py-12">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-montserrat">
+        <div>
+          <h2 className="text-2xl font-black tracking-tighter text-gray-900 mb-4 font-montserrat">
             発見された原則
           </h2>
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            {caseData.principlesLead}
+          </p>
           <div className="grid md:grid-cols-2 gap-6">
             {caseData.principles.map((principle) => (
-              <div
+              <Link
                 key={principle.id}
-                className="bg-gray-50 rounded-xl p-6 border border-gray-200"
+                href={`/principle/${principle.id.toLowerCase()}`}
+                className="block bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-gray-400 hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <span className="text-2xl font-bold text-gray-900 font-montserrat">
@@ -351,16 +1520,45 @@ export default async function CaseDetailPage({ params }: PageProps) {
                   </span>
                 </div>
                 <p className="text-gray-600">{principle.evidence}</p>
-              </div>
+              </Link>
             ))}
+          </div>
+
+          {/* Underlying Principles */}
+          <div className="mt-8">
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">
+              この事例にも通底する原則
+            </h3>
+            <p className="text-xs text-gray-400 mb-4">
+              4原則はどの事例にも通底している。上では特に際立つ側面を取り上げたが、以下もまた、この事例を支えている。
+            </p>
+            <div className="grid md:grid-cols-2 gap-4">
+              {caseData.underlying.map((principle) => (
+                <Link
+                  key={principle.id}
+                  href={`/principle/${principle.id.toLowerCase()}`}
+                  className="block rounded-lg p-4 border border-dashed border-gray-300 hover:border-gray-500 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-bold text-gray-400 font-montserrat">
+                      {principle.id}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {principle.name}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500">{principle.brief}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Reverse Engineering Structure */}
       <section className="container-base py-12 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 font-montserrat">
+        <div>
+          <h2 className="text-2xl font-black tracking-tighter text-gray-900 mb-8 font-montserrat">
             逆算の構造
           </h2>
 
@@ -416,8 +1614,8 @@ export default async function CaseDetailPage({ params }: PageProps) {
 
       {/* Connection */}
       <section className="container-base py-12">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-montserrat">
+        <div>
+          <h2 className="text-2xl font-black tracking-tighter text-gray-900 mb-6 font-montserrat">
             {caseData.connection.label}
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
@@ -435,28 +1633,74 @@ export default async function CaseDetailPage({ params }: PageProps) {
 
       {/* Insight */}
       <section className="container-base py-12 bg-gray-900 text-white">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6 font-montserrat">洞察</h2>
+        <div>
+          <h2 className="text-2xl font-black tracking-tighter mb-6 font-montserrat">
+            洞察
+          </h2>
           <p className="text-xl text-gray-300 leading-relaxed">
             {caseData.insight}
           </p>
         </div>
       </section>
 
+      {/* Related Cases */}
+      <section className="container-base py-12 border-t border-gray-200">
+        <div>
+          <h2 className="text-2xl font-black tracking-tighter text-gray-900 mb-6 font-montserrat">
+            同じ原則を持つ事例
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {Object.entries(casesData)
+              .filter(([key]) => key !== slug)
+              .filter(([, data]) =>
+                data.principles.some((p) =>
+                  caseData.principles.some((cp) => cp.id === p.id),
+                ),
+              )
+              .slice(0, 4)
+              .map(([key, data]) => {
+                const sharedPrinciples = data.principles
+                  .filter((p) =>
+                    caseData.principles.some((cp) => cp.id === p.id),
+                  )
+                  .map((p) => p.id);
+                return (
+                  <Link
+                    key={key}
+                    href={`/case/${key}`}
+                    className="flex items-center justify-between bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-gray-400 transition-colors"
+                  >
+                    <div>
+                      <span className="text-sm text-gray-500">
+                        {data.domain}
+                      </span>
+                      <h3 className="font-bold text-gray-900">{data.title}</h3>
+                    </div>
+                    <div className="flex gap-1">
+                      {sharedPrinciples.map((id) => (
+                        <span
+                          key={id}
+                          className="px-2 py-0.5 bg-gray-900 text-white text-xs font-bold rounded"
+                        >
+                          {id}
+                        </span>
+                      ))}
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
+        </div>
+      </section>
+
       {/* Navigation */}
       <section className="container-base py-12">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+        <div className="flex justify-end">
           <Link
-            href="/case"
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
-            ← Back to Cases
-          </Link>
-          <Link
-            href="/"
+            href="/tip"
             className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
           >
-            GOOD Project
+            TIP Docs →
           </Link>
         </div>
       </section>

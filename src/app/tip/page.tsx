@@ -12,14 +12,8 @@ export default function TipPage() {
     <main className="min-h-screen bg-white">
       {/* Hero */}
       <section className="container-base py-16 md:py-24 bg-gray-900 text-white">
-        <div className="max-w-4xl mx-auto">
-          <Link
-            href="/"
-            className="text-gray-400 hover:text-gray-200 mb-4 inline-block"
-          >
-            ← GOOD Project
-          </Link>
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 font-montserrat">
+        <div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-4 font-montserrat">
             TIP
           </h1>
           <p className="text-2xl md:text-3xl text-gray-300 mb-4">
@@ -33,8 +27,8 @@ export default function TipPage() {
 
       {/* Why TIP */}
       <section className="container-base py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-montserrat">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 mb-6 font-montserrat">
             なぜ必要か
           </h2>
           <div className="bg-gray-50 rounded-xl p-8 border border-gray-200">
@@ -57,8 +51,8 @@ export default function TipPage() {
 
       {/* Core 4 Principles */}
       <section className="container-base py-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2 font-montserrat">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 mb-2 font-montserrat">
             核心4原則
           </h2>
           <p className="text-gray-600 mb-8">C1→C2→C3→C4（この順序で適用）</p>
@@ -113,8 +107,8 @@ export default function TipPage() {
 
       {/* Auxiliary 11 Principles */}
       <section className="container-base py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2 font-montserrat">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 mb-2 font-montserrat">
             補助11原則
           </h2>
           <p className="text-gray-600 mb-8">フェーズ別に適用</p>
@@ -171,8 +165,8 @@ export default function TipPage() {
 
       {/* Meta Principles */}
       <section className="container-base py-16 bg-gray-900 text-white">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold mb-8 font-montserrat">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tighter mb-8 font-montserrat">
             3つのメタ原則
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -196,8 +190,8 @@ export default function TipPage() {
 
       {/* Origin */}
       <section className="container-base py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 font-montserrat">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 mb-6 font-montserrat">
             出典
           </h2>
           <div className="bg-gray-50 rounded-xl p-8 border border-gray-200">
@@ -236,7 +230,7 @@ export default function TipPage() {
             </div>
             <p className="text-gray-600 text-sm">
               これらの「美しい実装」から4原則を逆算して発見し、
-              順序（C1→C2→C3→C4）を実験で検証した。
+              順序（C1→C2→C3→C4）の有効性を複数のプロジェクトで確認した。
             </p>
           </div>
         </div>
@@ -244,8 +238,8 @@ export default function TipPage() {
 
       {/* Docs Links */}
       <section className="container-base py-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 font-montserrat">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 mb-8 font-montserrat">
             ドキュメント
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -311,8 +305,8 @@ export default function TipPage() {
 
       {/* Tools */}
       <section className="container-base py-16">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 font-montserrat">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 mb-8 font-montserrat">
             ツール
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -354,8 +348,8 @@ export default function TipPage() {
 
       {/* Education & Community */}
       <section className="container-base py-16 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 font-montserrat">
+        <div>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-gray-900 mb-8 font-montserrat">
             教育・コミュニティ
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -409,10 +403,7 @@ export default function TipPage() {
 
       {/* Navigation */}
       <section className="container-base py-12">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <Link href="/" className="text-gray-500 hover:text-gray-700">
-            ← GOOD Project
-          </Link>
+        <div className="flex justify-end">
           <Link
             href="/case"
             className="px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"

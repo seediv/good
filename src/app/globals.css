@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
+/* ===========================================
+   CSS Variables
+   =========================================== */
 :root {
   --background: #ffffff;
   --foreground: #171717;
 
-  /* ===========================================
-     Responsive Spacing System
-     =========================================== */
+  /* Responsive Spacing System */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
@@ -14,9 +15,7 @@
   --spacing-xl: 24px;
   --spacing-section: 32px;
 
-  /* ===========================================
-     Logo Typography System
-     =========================================== */
+  /* Logo Typography System */
   --logo-font-family: "Montserrat", system-ui, sans-serif;
   --logo-font-size: 1.875rem;
   --logo-font-weight: 800;
@@ -40,6 +39,9 @@
   --color-foreground: var(--foreground);
 }
 
+/* ===========================================
+   Base Styles
+   =========================================== */
 html {
   scroll-behavior: smooth;
 }
@@ -50,34 +52,38 @@ body {
   font-family: var(--font-noto-sans-jp), "Noto Sans JP", "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* 見出し: Montserrat優先（英数字）、日本語はNoto Sans JPにフォールバック */
+/* 見出し: Montserrat（英数字）+ Noto Sans JP（日本語）を併用 */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-montserrat), "Montserrat", var(--font-noto-sans-jp), "Noto Sans JP", system-ui, sans-serif;
+  font-family: var(--font-montserrat), "Montserrat", var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
 }
 
-/* コンテナ */
+/* ===========================================
+   Container - seehubと統一（モバイルで画面いっぱい）
+   =========================================== */
 .container-base {
   width: 100%;
   margin: 0 auto;
-  padding-left: 16px;
-  padding-right: 16px;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+@media (min-width: 480px) {
+  .container-base {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
 }
 
 @media (min-width: 640px) {
   .container-base {
-    padding-left: 24px;
-    padding-right: 24px;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
   }
 }
 
-@media (min-width: 1024px) {
-  .container-base {
-    padding-left: 48px;
-    padding-right: 48px;
-  }
-}
-
-/* ロゴ */
+/* ===========================================
+   Logo
+   =========================================== */
 .site-logo {
   font-family: var(--logo-font-family);
   font-size: var(--logo-font-size);
@@ -89,9 +95,9 @@ h1, h2, h3, h4, h5, h6 {
   color: inherit;
 }
 
-/* font-montserrat utility class */
+/* font-montserrat utility class — 英数字Montserrat、日本語Noto Sans JP */
 .font-montserrat {
-  font-family: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
+  font-family: var(--font-montserrat), "Montserrat", var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
 }
 
 /* ===========================================
@@ -123,7 +129,9 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* アニメーション */
+/* ===========================================
+   Animations
+   =========================================== */
 @keyframes fade-in {
   from {
     opacity: 0;
