@@ -20,3 +20,11 @@
 - `font-black` + `tracking-tighter` は常にペアで使用（Display Role）
 - Font ≠ Typography: Fontは素材、Typographyは設計
 - 参照: mirror `src/lib/shared/design-system/tokens/typography.ts`
+
+## Session Notes
+
+セッション終了時に進捗・未完了タスク・次回アクションをここに記録し、次セッションへ引き継ぐ。
+
+| 日付 | 対象領域 | 進捗 | 未完了・次回アクション |
+|------|---------|------|----------------------|
+| <!-- セッション終了時に追記 --> | | | |

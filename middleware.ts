@@ -33,8 +33,16 @@ function checkBasicAuth(request: NextRequest): boolean {
   return false;
 }
 
+// localhost では BASIC 認証をスキップ（開発時の確認用）
+function isLocalhost(request: NextRequest): boolean {
+  const host = request.headers.get("host") ?? "";
+  return host.startsWith("127.0.0.1") || host.startsWith("localhost");
+}
+
 // メインミドルウェア: BASIC認証
 export default function middleware(request: NextRequest) {
+  if (isLocalhost(request)) return NextResponse.next();
+
   // BASIC認証チェック
   if (!checkBasicAuth(request)) {
     return new NextResponse("Authentication required", {
